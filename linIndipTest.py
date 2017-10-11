@@ -6,9 +6,9 @@ from genCov import *
 
 # model dimensions
 
-n = 3
-p = 2
-m = 1
+n = 20
+p = 1
+m = 20
 
 # model parameters
 
@@ -19,7 +19,8 @@ U = tf.Variable(tf.random_normal([m,p]))
 
 SX = tf.constant(computeSigmaX(n),dtype=tf.float32)
 c = np.arange(n)
-SYX = tf.constant(computeSigmaYX(c,n),dtype=tf.float32)
+#SYX = tf.constant(computeSigmaYX(c,n),dtype=tf.float32)
+SYX = tf.constant(np.random.normal(scale=2.0,size=(n,n)),dtype=tf.float32)
 
 U_W = tf.matmul(U,W)
 U_W_SX = tf.matmul(U_W,SX)
@@ -38,7 +39,7 @@ loss = loss_pos - 2 * loss_neg
 
 # optimizer
 
-optimizer = tf.train.GradientDescentOptimizer(0.01)
+optimizer = tf.train.AdamOptimizer(0.001)
 train = optimizer.minimize(loss)
 
 # training/accuracy computing loop

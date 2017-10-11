@@ -1,4 +1,4 @@
-# In this case there should be no bad local minima, assuming S=I
+# In this case there should be no bad local minima, is S = I
 
 import tensorflow as tf
 import numpy as np
@@ -6,14 +6,20 @@ from genCov import *
 
 # model dimensions
 
-n = 3
-p = 2
+n = 2
+p = 4
 m = 1
 
 # model parameters
 
 W = tf.Variable(tf.random_normal([1,p,n]))
 U = tf.Variable(tf.random_normal([m,p]))
+W0 = tf.Variable(tf.random_normal([1,p,n]))
+U0 = tf.Variable(tf.random_normal([m,p]))
+copyW = W0.assign(W)
+copyU = U0.assign(U)
+copyW0 = W.assign(W0)
+copyU0 = U.assign(U0)
 
 # model loss function
 
@@ -25,9 +31,9 @@ delta = tf.constant(computeDelta(p),dtype=tf.float32)
 #SigmaX2 = computeSigmaX2(n)
 SX2 = tf.constant(computeSigmaX2(n),dtype=tf.float32)
 #SYX2 = tf.placeholder(tf.float32, shape=(m,n,n))
-c = np.ones((m))
 #SigmaYX2 = computeSigmaYX2(c,n)
-SYX2 = tf.constant(computeSigmaYX2(c,n),dtype=tf.float32)
+SigmaYX2 = [[[2,0],[0,-1]]]
+SYX2 = tf.constant(SigmaYX2,dtype=tf.float32)
 
 U_delta = tf.tensordot(U,delta,[[1],[0]])
 U_delta_W2 = tf.tensordot(U_delta,W2,[[1,2],[0,2]])
@@ -46,19 +52,33 @@ loss = loss_pos - 2 * loss_neg
 
 # optimizer
 
-optimizer = tf.train.GradientDescentOptimizer(0.01)
+#optimizer = tf.train.GradientDescentOptimizer(0.001)
+optimizer = tf.train.AdamOptimizer(0.001)
 train = optimizer.minimize(loss)
+optimizer1 = tf.train.AdamOptimizer(0.001)
+train1 = optimizer1.minimize(loss)
 
 # training/accuracy computing loop
 
 init = tf.global_variables_initializer()
 sess = tf.Session()
 itTest = 10
-itGradDesc = 10000
+itGradDesc = 20000
+itGradDescIncrease = 5000
 for _ in range(itTest):
 	sess.run(init)
+	sess.run(copyW)
+	sess.run(copyU)
 	for i in range(itGradDesc):
   		sess.run(train)
 	
 	WOpt, UOpt, lossOpt = sess.run([W, U, loss])
 	print("minimum loss found: %s"%(lossOpt))
+
+	sess.run(copyW0)
+	sess.run(copyU0)
+	for i in range(itGradDesc+itGradDescIncrease):
+  		sess.run(train1)
+	
+	WOpt, UOpt, lossOpt = sess.run([W, U, loss])
+	print("minimum loss found (train1): %s"%(lossOpt))
