@@ -1,2 +1,2 @@
 # ConnectedLevelSetsDeepLearning
-Numerical tests to prove connectedness of sub-level sets of deep neural networks
+Numerical tests to study connectedness of level sets of deep neural networks
